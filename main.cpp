@@ -10,31 +10,49 @@ enum Dir { N = 1, E, S, W };
 
 class Block {
 public:
-    double x;
-    double y;
-    double length;
+    int x;
+    int y;
+    int length;
     Dir direction;
 
     void draw(int width, Color color) {
         if (direction == Dir::E || direction == Dir::W) {
-            DrawRectangle(round(x), round(y), round(length), width, color);
+            DrawRectangle(x, y, length, width, color);
         } else if (direction == Dir::N || direction == Dir::S) {
-            DrawRectangle(round(x), round(y), width, round(length), color);
+            DrawRectangle(x, y, width, length, color);
         }
+    }
+
+    void growTip(int d) {
+        if (direction == Dir::N) {
+            y -= d;
+        } else if (direction == Dir::W) {
+            x -= d;
+        }
+        length += d;
+    }
+
+    void shrinkBase(int d) {
+        assert(d < length);
+        if (direction == Dir::S) {
+            y += d;
+        } else if (direction == Dir::E) {
+            x += d;
+        }
+        length -= d;
     }
 };
 
 class Snake {
     deque<Block> blocks;
+    double deltaTime = 0;
 
 public:
-    double initialLength;
-    double width;
+    int width;
     Color color;
 
-    Snake(double initialLength, double width, Color color)
-        : initialLength{initialLength},
-          width{width},
+    Snake(int initialLength, int width, Color color)
+        : width{width},
           color{color} {
         blocks.push_back({100, 200, initialLength, Dir::E});
     }
@@ -45,7 +63,7 @@ public:
         }
     }
 
-    void move(double speed, double deltaTime);
+    void move(double speed, double currentTime);
 
     void updateDir() {
         Dir dir = blocks.back().direction;
@@ -90,59 +108,33 @@ private:
     }
 };
 
-void Snake::move(double speed, double deltaTime) {
-    double d = speed * deltaTime;
+void Snake::move(double speed, double currentTime) {
+    currentTime += deltaTime;
+    int d = int(round(speed * currentTime));
+    double updateTime = d / speed;
+    deltaTime = currentTime - updateTime;
 
-    Block &head = blocks.back();
-    if (head.direction == Dir::N) {
-        head.y -= d;
-    } else if (head.direction == Dir::W) {
-        head.x -= d;
-    }
-    head.length += d;
-
-    {
-        Block &tail = blocks.front();
-        if (tail.direction == Dir::S) {
-            tail.y += d;
-        } else if (tail.direction == Dir::E) {
-            tail.x += d;
-        }
-    }
+    blocks.back().growTip(d);
 
     while (d > 0) {
         Block &tail = blocks.front();
         assert(tail.length > 0);
-        double dd = min(d, tail.length);
-        tail.length -= dd;
+
+        int dd = min(d, tail.length);
         d -= dd;
-        if (tail.length <= 0) {
+
+        if (tail.length <= dd) {
             blocks.pop_front();
+        } else {
+            tail.shrinkBase(dd);
         }
     }
-
 }
-
-
-void updatePos(Block &block, Dir dir, double speed, double deltaTime) {
-    double d = speed * deltaTime;
-    if (dir == Dir::E) {
-        block.x += d;
-    } else if (dir == Dir::S) {
-        block.y += d;
-    } else if (dir == Dir::N) {
-        block.y -= d;
-    } else if (dir == Dir::W) {
-        block.x -= d;
-    }
-}
-
 
 int main() {
     InitWindow(800, 450, "snake");
     SetTargetFPS(120);
 
-    int width = 20;
     double speed = 40; // pixels per second
 
     Snake snake{100, 20, DARKGREEN};
