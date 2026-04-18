@@ -54,7 +54,7 @@ public:
     Snake(int initialLength, int width, Color color)
         : width{width},
           color{color} {
-        blocks.push_back({100, 200, initialLength, Dir::E});
+        blocks.push_back({20, 400, initialLength, Dir::E});
     }
 
     void draw() {
@@ -66,7 +66,6 @@ public:
     void move(double speed, double currentTime);
 
     void updateDir() {
-        Dir dir = blocks.back().direction;
         if (IsKeyPressed(KEY_RIGHT)) {
             turnEast();
         }
@@ -74,10 +73,10 @@ public:
             turnNorth();
         }
         if (IsKeyPressed(KEY_DOWN)) {
-            //direction = Dir::S;
+            turnSouth();
         }
         if (IsKeyPressed(KEY_LEFT)) {
-            //direction = Dir::W;
+            turnWest();
         }
     }
 
@@ -101,11 +100,36 @@ private:
             head.length -= width;
             head.y += width;
             blocks.push_back({head.x, head.y - width, width, Dir::E});
-        } else if (head.direction == Dir::W) {
+        } else if (head.direction == Dir::S) {
             head.length -= width;
             blocks.push_back({head.x, head.y + head.length, width, Dir::E});
         }
     }
+
+    void turnSouth() {
+        Block &head = blocks.back();
+        if (head.direction == Dir::E) {
+            head.length -= width;
+            blocks.push_back({head.x + head.length, head.y, width, Dir::S});
+        } else if (head.direction == Dir::W) {
+            head.length -= width;
+            head.x += width;
+            blocks.push_back({head.x - width, head.y, width, Dir::S});
+        }
+    }
+
+    void turnWest() {
+        Block &head = blocks.back();
+        if (head.direction == Dir::N) {
+            head.length -= width;
+            head.y += width;
+            blocks.push_back({head.x, head.y - width, width, Dir::W});
+        } else if (head.direction == Dir::S) {
+            head.length -= width;
+            blocks.push_back({head.x, head.y + head.length, width, Dir::W});
+        }
+    }
+
 };
 
 void Snake::move(double speed, double currentTime) {
@@ -133,9 +157,9 @@ void Snake::move(double speed, double currentTime) {
 
 int main() {
     InitWindow(800, 450, "snake");
-    SetTargetFPS(120);
+    SetTargetFPS(30);
 
-    double speed = 40; // pixels per second
+    double speed = 50; // pixels per second
 
     Snake snake{100, 20, DARKGREEN};
     //blocks.push_back({200, 200, 100, Dir::E});
