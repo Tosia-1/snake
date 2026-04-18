@@ -32,7 +32,8 @@ public:
         length += d;
 
         // vefify if snake went outside the window
-        if (x < 0 || (x > GetScreenWidth() - length && direction == Dir::E) || y < 0 || (y > GetScreenHeight() - length && direction == Dir::S)) {
+        if (x < 0 || (x > GetScreenWidth() - length && direction == Dir::E) || y < 0 || (
+                y > GetScreenHeight() - length && direction == Dir::S)) {
             return 1;
         }
         return 0;
@@ -74,70 +75,49 @@ public:
     void move(double speed, double currentTime);
 
     void updateDir() {
+        assert(blocks.back().length >= width);
+
         if (IsKeyPressed(KEY_RIGHT)) {
-            turnEast();
+            turn(Dir::E);
         }
         if (IsKeyPressed(KEY_UP)) {
-            turnNorth();
+            turn(Dir::N);
         }
         if (IsKeyPressed(KEY_DOWN)) {
-            turnSouth();
+            turn(Dir::S);
         }
         if (IsKeyPressed(KEY_LEFT)) {
-            turnWest();
+            turn(Dir::W);
         }
     }
 
 private:
-    void turnNorth() {
+    Dir oposite(Dir dir) {
+        switch (dir) {
+            case Dir::E: return Dir::W;
+            case Dir::W: return Dir::E;
+            case Dir::N: return Dir::S;
+            case Dir::S: return Dir::N;
+        }
+        assert(false);
+    }
+
+    void turn(Dir newDir) {
         Block &head = blocks.back();
-        assert(head.length >= width);
-        if (head.direction == Dir::E) {
-            head.length -= width;
-            blocks.push_back({head.x + head.length, head.y, width, Dir::N});
-        } else if (head.direction == Dir::W) {
-            head.length -= width;
+        if (head.direction == newDir || head.direction == oposite(newDir)) { return;}
+
+        head.length -= width;
+        int newX = (head.direction == Dir::E) ? head.x + head.length : head.x;
+        int newY = (head.direction == Dir::S) ? head.y + head.length : head.y;
+        if (head.direction == Dir::W) {
             head.x += width;
-            blocks.push_back({head.x - width, head.y, width, Dir::N});
-        }
-    }
-
-    void turnEast() {
-        Block &head = blocks.back();
-        if (head.direction == Dir::N) {
-            head.length -= width;
+        } else if (head.direction == Dir::N) {
             head.y += width;
-            blocks.push_back({head.x, head.y - width, width, Dir::E});
-        } else if (head.direction == Dir::S) {
-            head.length -= width;
-            blocks.push_back({head.x, head.y + head.length, width, Dir::E});
         }
+        assert(head.length >= 0);
+        if (head.length == 0) { blocks.pop_back(); }
+        blocks.push_back({newX, newY, width, newDir});
     }
-
-    void turnSouth() {
-        Block &head = blocks.back();
-        if (head.direction == Dir::E) {
-            head.length -= width;
-            blocks.push_back({head.x + head.length, head.y, width, Dir::S});
-        } else if (head.direction == Dir::W) {
-            head.length -= width;
-            head.x += width;
-            blocks.push_back({head.x - width, head.y, width, Dir::S});
-        }
-    }
-
-    void turnWest() {
-        Block &head = blocks.back();
-        if (head.direction == Dir::N) {
-            head.length -= width;
-            head.y += width;
-            blocks.push_back({head.x, head.y - width, width, Dir::W});
-        } else if (head.direction == Dir::S) {
-            head.length -= width;
-            blocks.push_back({head.x, head.y + head.length, width, Dir::W});
-        }
-    }
-
 };
 
 void Snake::move(double speed, double currentTime) {
