@@ -23,13 +23,19 @@ public:
         }
     }
 
-    void growTip(int d) {
+    int growTip(int d) {
         if (direction == Dir::N) {
             y -= d;
         } else if (direction == Dir::W) {
             x -= d;
         }
         length += d;
+
+        // vefify if snake went outside the window
+        if (x < 0 || (x > GetScreenWidth() - length && direction == Dir::E) || y < 0 || (y > GetScreenHeight() - length && direction == Dir::S)) {
+            return 1;
+        }
+        return 0;
     }
 
     void shrinkBase(int d) {
@@ -50,10 +56,12 @@ class Snake {
 public:
     int width;
     Color color;
+    bool dead;
 
     Snake(int initialLength, int width, Color color)
         : width{width},
-          color{color} {
+          color{color},
+          dead{false} {
         blocks.push_back({20, 400, initialLength, Dir::E});
     }
 
@@ -138,7 +146,10 @@ void Snake::move(double speed, double currentTime) {
     double updateTime = d / speed;
     deltaTime = currentTime - updateTime;
 
-    blocks.back().growTip(d);
+    if (blocks.back().growTip(d) == 1) {
+        dead = true;
+        cout << "snake died" << endl;
+    }
 
     while (d > 0) {
         Block &tail = blocks.front();
@@ -159,7 +170,13 @@ int main() {
     InitWindow(800, 450, "snake");
     SetTargetFPS(30);
 
-    double speed = 50; // pixels per second
+    double speed = 100; // pixels per second
+
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
+    MaximizeWindow();
+    cout << IsWindowMaximized() << endl;
+    cout << GetScreenHeight() << " " << GetScreenWidth() << endl;
+    cout << GetRenderHeight() << " " << GetRenderWidth() << endl;
 
     Snake snake{100, 20, DARKGREEN};
     //blocks.push_back({200, 200, 100, Dir::E});
@@ -170,8 +187,10 @@ int main() {
         //direction = updateDir(direction);
         double frameTime = GetFrameTime();
         //updatePos(snake.at(0), direction, speed, frameTime);
-        snake.updateDir();
-        snake.move(speed, frameTime);
+        if (!snake.dead) {
+            snake.updateDir();
+            snake.move(speed, frameTime);
+        }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
