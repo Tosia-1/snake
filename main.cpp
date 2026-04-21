@@ -13,14 +13,23 @@ public:
     int x;
     int y;
     int length;
+    int width;
     Dir direction;
 
-    void draw(int width, Color color) {
+    Rectangle getRect() {
+        float w = 0, h = 0;
         if (direction == Dir::E || direction == Dir::W) {
-            DrawRectangle(x, y, length, width, color);
+            w = length;
+            h = width;
         } else if (direction == Dir::N || direction == Dir::S) {
-            DrawRectangle(x, y, width, length, color);
+            h = length;
+            w = width;
         }
+        return{float(x), float(y), w, h};
+    }
+
+    void draw(Color color) {
+        DrawRectangleRec(getRect(), color);
     }
 
     int growTip(int d) {
@@ -65,12 +74,12 @@ public:
           color{color},
           speed{speed},
           dead{false} {
-        blocks.push_back({20, 400, initialLength, Dir::E});
+        blocks.push_back({20, 400, initialLength, width, Dir::E});
     }
 
     void draw() {
         for (auto block: blocks) {
-            block.draw(width, color);
+            block.draw(color);
         }
     }
 
@@ -118,7 +127,7 @@ private:
         }
         assert(head.length >= 0);
         if (head.length == 0) { blocks.pop_back(); }
-        blocks.push_back({newX, newY, width, newDir});
+        blocks.push_back({newX, newY, width, width, newDir});
     }
 };
 
