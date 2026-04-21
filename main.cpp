@@ -129,6 +129,23 @@ private:
         if (head.length == 0) { blocks.pop_back(); }
         blocks.push_back({newX, newY, width, width, newDir});
     }
+
+    Rectangle getDeltaRect(const Block& head, int d) {
+        float newX = 0, newY = 0, w = 0, h = 0;
+        if (head.direction == Dir::E || head.direction == Dir::W) {
+            newX = (head.direction == Dir::E) ? head.x + head.length -d : head.x;
+            newY = head.y;
+            w = d;
+            h = head.width;
+        } else if (head.direction == Dir::N || head.direction == Dir::S) {
+            newX = (head.direction == Dir::S) ? head.x + head.length -d : head.x;
+            newY = head.y;
+            w = head.width;
+            h = d;
+        }
+        return {newX, newY, w, h};
+    }
+
 };
 
 void Snake::move(double currentTime) {
@@ -136,9 +153,7 @@ void Snake::move(double currentTime) {
     int d = int(round(speed * currentTime));
     double updateTime = d / speed;
     deltaTime = currentTime - updateTime;
-
-
-
+    
     if (blocks.back().growTip(d) == 1) {
         dead = true;
         cout << "snake died" << endl;
@@ -157,6 +172,7 @@ void Snake::move(double currentTime) {
             tail.shrinkBase(dd);
         }
     }
+    getDeltaRect(blocks.back(), d);
 }
 
 int main() {
