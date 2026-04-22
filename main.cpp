@@ -32,20 +32,13 @@ public:
         DrawRectangleRec(getRect(), color);
     }
 
-    int growTip(int d) {
+    void growTip(int d) {
         if (direction == Dir::N) {
             y -= d;
         } else if (direction == Dir::W) {
             x -= d;
         }
         length += d;
-
-        // verify if snake went outside the window
-        if (x < 0 || (x > GetScreenWidth() - length && direction == Dir::E) || y < 0 || (
-                y > GetScreenHeight() - length && direction == Dir::S)) {
-            return 1;
-        }
-        return 0;
     }
 
     void shrinkBase(int d) {
@@ -146,6 +139,12 @@ private:
         return {newX, newY, w, h};
     }
 
+    bool touchedBorder(const Rectangle& dRect, int screenWidth, int screenHeight) {
+        if (dRect.x < 0 || dRect.x > screenWidth - dRect.width || dRect.y < 0 ||
+                dRect.y > screenHeight - dRect.height) { return 1; }
+        return 0;
+    }
+
 };
 
 void Snake::move(double currentTime) {
@@ -153,11 +152,8 @@ void Snake::move(double currentTime) {
     int d = int(round(speed * currentTime));
     double updateTime = d / speed;
     deltaTime = currentTime - updateTime;
-    
-    if (blocks.back().growTip(d) == 1) {
-        dead = true;
-        cout << "snake died" << endl;
-    }
+
+    blocks.back().growTip(d);
 
     while (d > 0) {
         Block &tail = blocks.front();
@@ -172,7 +168,10 @@ void Snake::move(double currentTime) {
             tail.shrinkBase(dd);
         }
     }
-    getDeltaRect(blocks.back(), d);
+    Rectangle dRect = getDeltaRect(blocks.back(), d);
+    if (touchedBorder(dRect, GetScreenWidth(), GetScreenHeight())) {
+        dead = true;
+    }
 }
 
 int main() {
