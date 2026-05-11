@@ -87,6 +87,7 @@ public:
     double speed; // pixels per second
     Color color;
     bool dead;
+    int score = 0;
 
     Snake(int initialLength, int width, double speed, Color color)
         : initialLength{initialLength},
@@ -101,6 +102,10 @@ public:
         for (auto block: blocks) {
             block.draw(color);
         }
+    }
+
+    void drawScore(int x, int y, int size, Color col) {
+        DrawText(("score: "s + to_string(score)).c_str(), x, y, size, col);
     }
 
     Rectangle move(double currentTime, Apples& apples);
@@ -122,11 +127,17 @@ public:
         }
     }
 
-    void revive() {
+    int revive(int highscore) {
+        if (score > highscore) {
+            highscore = score;
+        }
+
         blocks.clear();
         deltaTime = 0;
         dead = false;
+        score = 0;
         blocks.push_back({20, 400, initialLength, width, Dir::E});
+        return highscore;
     }
 
 private:
@@ -226,9 +237,12 @@ Rectangle Snake::move(double currentTime, Apples& apples) {
     for (int i = 0; i < apples.size(); i++) {
         if (ateApple(apples[i], deltaRect)) {
             cout << "apple was eaten" << endl;
+            ++score;
+
             apples[i] = apples.back();
             apples.pop_back();
             --i;
+
             float newX = rand() % (screenWidth - 10);
             float newY = rand() % (screenHeight - 10);
             apples.push_back({newX, newY});
@@ -247,13 +261,15 @@ Rectangle Snake::move(double currentTime, Apples& apples) {
 
 int main() {
     InitWindow(0, 0, "snake");
-    SetTargetFPS(5);
+    SetTargetFPS(30);
+
+    int highscore = 0;
 
     //double speed = 100; // pixels per second
 
-    SetWindowState(FLAG_BORDERLESS_WINDOWED_MODE);
-    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
-    //MaximizeWindow();
+    SetWindowState(FLAG_WINDOW_UNDECORATED);
+    //SetConfigFlags(FLAG_WINDOW_HIGHDPI);
+    // MaximizeWindow();
     cout << IsWindowMaximized() << endl;
     cout << GetScreenHeight() << " " << GetScreenWidth() << endl;
     cout << GetRenderHeight() << " " << GetRenderWidth() << endl;
@@ -267,12 +283,12 @@ int main() {
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        DrawFPS(50, 50);
+        DrawFPS(10, 15);
 
         if (IsKeyPressed(KEY_SPACE) && snake.dead) {
-            snake.revive();
+            highscore = snake.revive(highscore);
         }
-        
+
         Rectangle deltaRect{};
         if (!snake.dead) {
             snake.updateDir();
@@ -280,6 +296,8 @@ int main() {
         }
         snake.draw();
         DrawRectangleRec(deltaRect, RED);
+        DrawText(("highscore: "s + to_string(highscore)).c_str(), 10, 40, 25, BLUE);
+        snake.drawScore(10, 70, 25, PINK);
 
         for (const Apple &a: apples) {
             a.draw();
