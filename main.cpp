@@ -57,8 +57,8 @@ public:
 class Apple {
     float r;
     Vector2 pos;
-public:
 
+public:
     Apple(float x, float y) : r{10}, pos{x, y} {
     }
 
@@ -68,10 +68,10 @@ public:
 
     void draw() const {
         DrawCircle(pos.x, pos.y, r, RED);
-        int stemLength = r/2;
-        int stemWidth = r/5;
-        DrawRectangle(pos.x-stemWidth/2, pos.y-r-stemLength+r/5, stemWidth, stemLength, BROWN);
-        DrawCircle(pos.x+2*stemWidth, pos.y-r+r/5, r/3, DARKGREEN);
+        int stemLength = r / 2;
+        int stemWidth = r / 5;
+        DrawRectangle(pos.x - stemWidth / 2, pos.y - r - stemLength + r / 5, stemWidth, stemLength, BROWN);
+        DrawCircle(pos.x + 2 * stemWidth, pos.y - r + r / 5, r / 3, DARKGREEN);
     }
 };
 
@@ -103,7 +103,7 @@ public:
     }
 
 
-    void move(double currentTime, Apples &apples);
+    void move(double currentTime, Apples& apples);
 
     void updateDir() {
         assert(blocks.back().length >= width);
@@ -173,7 +173,7 @@ private:
     }
 
     bool collidedSnake(deque<Block> &bl, Rectangle deltaRect) {
-        for (int i = 0; i < blocks.size()-1; i++) {
+        for (int i = 0; i < blocks.size() - 1; i++) {
             Rectangle r = bl[i].getRect();
             if (CheckCollisionRecs(deltaRect, r)) {
                 cout << deltaRect.x << " " << deltaRect.y << " " << deltaRect.width << " " << deltaRect.height << endl;
@@ -195,6 +195,9 @@ void Snake::move(double currentTime, Apples& apples) {
     double updateTime = d / speed;
     deltaTime = currentTime - updateTime;
 
+    int screenWidth = GetScreenWidth();
+    int screenHeight = GetScreenHeight();
+
     blocks.back().growTip(d);
 
     int cd = d;
@@ -214,7 +217,7 @@ void Snake::move(double currentTime, Apples& apples) {
     Rectangle deltaRect = getDeltaRect(blocks.back(), d);
     draw(deltaRect);
 
-    if (collidedBorder(GetScreenWidth(), GetScreenHeight(), deltaRect)) {
+    if (collidedBorder(screenWidth, screenHeight, deltaRect)) {
         dead = true;
         return;
     }
@@ -222,24 +225,18 @@ void Snake::move(double currentTime, Apples& apples) {
         dead = true;
         cout << "snake collided" << endl;
     }
-    for (int i=0; i<apples.size(); i++) {
+    for (int i = 0; i < apples.size(); i++) {
         if (ateApple(apples[i], deltaRect)) {
             cout << "apple was eaten" << endl;
             apples[i] = apples.back();
             apples.pop_back();
             --i;
+            float newX = rand() % (screenWidth - 10);
+            float newY = rand() % (screenHeight - 10);
+            apples.push_back({newX, newY});
         }
     }
-
 }
-
-// void DrawApple(int x, int y, int r) {
-//     DrawCircle(x, y, r, RED);
-//     int stemLength = r/2;
-//     int stemWidth = r/5;
-//     DrawRectangle(x-stemWidth/2, y-r-stemLength+r/5, stemWidth, stemLength, BROWN);
-//     DrawCircle(x+2*stemWidth, y-r+r/5, r/3, DARKGREEN);
-// }
 
 int main() {
     InitWindow(0, 0, "snake");
@@ -270,7 +267,7 @@ int main() {
             snake.move(frameTime, apples);
         }
 
-        for (const Apple& a : apples) {
+        for (const Apple &a: apples) {
             a.draw();
         }
         EndDrawing();
