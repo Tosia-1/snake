@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <cmath>
+#include <vector>
 #include <deque>
 #include "raylib.h"
 
@@ -274,7 +275,7 @@ int main() {
     cout << GetScreenHeight() << " " << GetScreenWidth() << endl;
     cout << GetRenderHeight() << " " << GetRenderWidth() << endl;
 
-    Snake snake{300, 20, 100, DARKGREEN};
+    Snake snake{300, 20, 120, DARKGREEN};
     vector<Apple> apples;
     apples.push_back({300, 300});
 
