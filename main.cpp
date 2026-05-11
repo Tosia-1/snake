@@ -80,6 +80,7 @@ using Apples = vector<Apple>;
 class Snake {
     deque<Block> blocks;
     double deltaTime = 0;
+    int initialLength = 0;
 
 public:
     int width;
@@ -88,7 +89,8 @@ public:
     bool dead;
 
     Snake(int initialLength, int width, double speed, Color color)
-        : width{width},
+        : initialLength{initialLength},
+          width{width},
           color{color},
           speed{speed},
           dead{false} {
@@ -100,7 +102,6 @@ public:
             block.draw(color);
         }
     }
-
 
     Rectangle move(double currentTime, Apples& apples);
 
@@ -119,6 +120,13 @@ public:
         if (IsKeyPressed(KEY_LEFT)) {
             turn(Dir::W);
         }
+    }
+
+    void revive() {
+        blocks.clear();
+        deltaTime = 0;
+        dead = false;
+        blocks.push_back({20, 400, initialLength, width, Dir::E});
     }
 
 private:
@@ -261,6 +269,10 @@ int main() {
         ClearBackground(RAYWHITE);
         DrawFPS(50, 50);
 
+        if (IsKeyPressed(KEY_SPACE) && snake.dead) {
+            snake.revive();
+        }
+        
         Rectangle deltaRect{};
         if (!snake.dead) {
             snake.updateDir();
