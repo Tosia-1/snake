@@ -95,15 +95,14 @@ public:
         blocks.push_back({20, 400, initialLength, width, Dir::E});
     }
 
-    void draw(Rectangle deltaRect) {
+    void draw() {
         for (auto block: blocks) {
             block.draw(color);
         }
-        DrawRectangleRec(deltaRect, RED);
     }
 
 
-    void move(double currentTime, Apples& apples);
+    Rectangle move(double currentTime, Apples& apples);
 
     void updateDir() {
         assert(blocks.back().length >= width);
@@ -189,7 +188,7 @@ private:
     }
 };
 
-void Snake::move(double currentTime, Apples& apples) {
+Rectangle Snake::move(double currentTime, Apples& apples) {
     currentTime += deltaTime;
     int d = int(round(speed * currentTime));
     double updateTime = d / speed;
@@ -215,16 +214,7 @@ void Snake::move(double currentTime, Apples& apples) {
         }
     }
     Rectangle deltaRect = getDeltaRect(blocks.back(), d);
-    draw(deltaRect);
 
-    if (collidedBorder(screenWidth, screenHeight, deltaRect)) {
-        dead = true;
-        return;
-    }
-    if (collidedSnake(blocks, deltaRect)) {
-        dead = true;
-        cout << "snake collided" << endl;
-    }
     for (int i = 0; i < apples.size(); i++) {
         if (ateApple(apples[i], deltaRect)) {
             cout << "apple was eaten" << endl;
@@ -236,11 +226,20 @@ void Snake::move(double currentTime, Apples& apples) {
             apples.push_back({newX, newY});
         }
     }
+    if (collidedBorder(screenWidth, screenHeight, deltaRect)) {
+        dead = true;
+        return deltaRect;
+    }
+    if (collidedSnake(blocks, deltaRect)) {
+        dead = true;
+        cout << "snake collided" << endl;
+    }
+    return deltaRect;
 }
 
 int main() {
     InitWindow(0, 0, "snake");
-    SetTargetFPS(30);
+    SetTargetFPS(5);
 
     //double speed = 100; // pixels per second
 
@@ -262,10 +261,13 @@ int main() {
         ClearBackground(RAYWHITE);
         DrawFPS(50, 50);
 
+        Rectangle deltaRect{};
         if (!snake.dead) {
             snake.updateDir();
-            snake.move(frameTime, apples);
+            deltaRect = snake.move(frameTime, apples);
         }
+        snake.draw();
+        DrawRectangleRec(deltaRect, RED);
 
         for (const Apple &a: apples) {
             a.draw();
