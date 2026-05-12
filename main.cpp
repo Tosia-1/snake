@@ -261,15 +261,15 @@ Rectangle Snake::move(double currentTime, Apples& apples) {
 }
 
 int main() {
-    InitWindow(0, 0, "snake");
-    SetTargetFPS(60);
+    SetConfigFlags(FLAG_WINDOW_UNDECORATED);
+    InitWindow(GetMonitorWidth(0) / 2, GetMonitorHeight(0) / 2, "snake");
+    SetTargetFPS(30);
 
     int highscore = 0;
 
     //double speed = 100; // pixels per second
 
     // SetWindowState(FLAG_WINDOW_UNDECORATED);
-    SetConfigFlags(FLAG_WINDOW_UNDECORATED);
     // MaximizeWindow();
     cout << IsWindowMaximized() << endl;
     cout << GetScreenHeight() << " " << GetScreenWidth() << endl;
